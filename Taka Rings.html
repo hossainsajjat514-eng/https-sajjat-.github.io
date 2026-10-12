@@ -1,0 +1,534 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Taka Rings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one narrow column built for a phone. Spending slots are open donut rings in a wrapping grid (no cards); a ring opens a bottom sheet for logging money; a second tab holds the weekly report (Saturday to Friday). */
+:root{
+  --bg:#EBEFF0; --surface:#F7F9F9; --ink:#122122; --muted:#5A6B6C; --line:#CBD5D6; --track:#D8E0E1;
+  --accent:#0B6E5E; --accent-ink:#FFFFFF; --warn:#A8500B; --bad:#B42318;
+  --c0:#0B6E5E; --c1:#C2410C; --c2:#2F5DA8; --c3:#A21CAF; --c4:#8A6A00; --c5:#BE185D; --c6:#5B21B6; --c7:#3F6212;
+  --font-display:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-body:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1718; --surface:#16242A; --ink:#E6EEEE; --muted:#93A5A6; --line:#2A3C3F; --track:#243639;
+    --accent:#3CC4A8; --accent-ink:#06201A; --warn:#F0A04B; --bad:#FF8A7A;
+    --c0:#3CC4A8; --c1:#FB923C; --c2:#7FA8F0; --c3:#E879F9; --c4:#E3B93C; --c5:#F472B6; --c6:#A78BFA; --c7:#A3C95B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1718; --surface:#16242A; --ink:#E6EEEE; --muted:#93A5A6; --line:#2A3C3F; --track:#243639;
+  --accent:#3CC4A8; --accent-ink:#06201A; --warn:#F0A04B; --bad:#FF8A7A;
+  --c0:#3CC4A8; --c1:#FB923C; --c2:#7FA8F0; --c3:#E879F9; --c4:#E3B93C; --c5:#F472B6; --c6:#A78BFA; --c7:#A3C95B;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--font-body);padding-inline:16px;padding-block:0}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:720px;margin:0 auto;padding-block:22px 64px}
+h1,h2,h3{font-family:var(--font-display);letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:30px;font-weight:700}
+h2{font-size:22px;font-weight:700}
+h3{font-size:13px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.stats{display:flex;flex-wrap:wrap;gap:16px 40px;margin-top:18px}
+.stat{min-width:0}
+.lbl{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.val{font:700 34px/1.1 var(--font-display);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.val small{font:500 14px var(--font-body);color:var(--muted);margin-left:4px}
+.val.neg{color:var(--bad)}
+.tabs{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;margin-block:22px 18px}
+.tabs button{border:0;background:none;padding:8px 18px;border-radius:999px;color:var(--muted);font-weight:600}
+.tabs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px 14px}
+.ringbtn{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:8px 6px 10px;border-radius:18px;min-width:0;text-align:center}
+.ringbtn:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.ringbtn svg{width:100%;max-width:150px;height:auto;display:block}
+.rname{font-weight:600;overflow-wrap:anywhere}
+.tag{font-size:12px;font-weight:600}
+.tag.warn{color:var(--warn)}
+.tag.bad{color:var(--bad)}
+.trk{fill:none;stroke:var(--track);stroke-width:11}
+.prg{fill:none;stroke-width:11;stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.bn{font-family:var(--font-display);font-weight:700;fill:var(--ink);font-variant-numeric:tabular-nums}
+.bs{font-size:9.5px;fill:var(--muted);font-family:var(--font-body)}
+.neg .bn{fill:var(--bad)}
+.plus-ring{fill:none;stroke:var(--line);stroke-width:2.5;stroke-dasharray:5 6}
+.plus-sign{stroke:var(--muted);stroke-width:3;stroke-linecap:round}
+.empty{padding-block:8px 24px;max-width:46ch}
+.empty h2{margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{border:1px solid var(--line);background:none;border-radius:999px;padding:7px 14px;font-weight:500}
+.chip:hover{border-color:var(--accent)}
+.status{margin-top:40px;font-size:13px;color:var(--muted)}
+.status.err{color:var(--bad)}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(8,16,16,.5);z-index:10}
+.sheet{position:fixed;left:0;right:0;bottom:0;margin-inline:auto;max-width:560px;max-height:90%;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:22px 22px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px));z-index:11;box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sh-head h2{min-width:0;overflow-wrap:anywhere}
+.x{border:0;background:none;font-size:28px;line-height:1;padding:2px 10px;color:var(--muted);border-radius:10px}
+.bigring{display:flex;flex-direction:column;align-items:center;gap:4px;margin-block:8px 14px}
+.bigring svg{width:min(210px,62vw);height:auto}
+.meta{color:var(--muted);font-size:14px;text-align:center}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:12px}
+.seg button{border:0;background:none;padding:10px;border-radius:9px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+input[type=text]{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px}
+input.amt{font:500 22px var(--font-mono);font-variant-numeric:tabular-nums}
+.amtrow{display:flex;gap:8px}
+.amtrow input{min-width:0}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:12px 18px;font-weight:600;white-space:nowrap}
+.btn.full{width:100%;margin-top:14px}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:none;border:1px solid var(--bad);color:var(--bad)}
+.btn.danger.armed{background:var(--bad);color:var(--surface)}
+.msg{min-height:1.3em;margin:6px 0 0;font-size:13px;color:var(--bad)}
+.swatches{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.sw{width:34px;height:34px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
+.hist{list-style:none;margin:8px 0 0;padding:0}
+.hist li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.e-main{flex:1;min-width:0}
+.e-note{display:block;overflow-wrap:anywhere}
+.e-when{display:block;font-size:12px;color:var(--muted)}
+.e-amt{font:500 15px var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.e-amt.a{color:var(--accent)}
+.e-del{border:0;background:none;color:var(--muted);padding:6px 8px;border-radius:8px;font-size:13px}
+.e-del.armed{color:var(--bad);font-weight:600}
+.settings{margin-top:26px;display:flex;flex-direction:column;gap:10px}
+.settings form{display:flex;gap:8px}
+.settings form input{min-width:0}
+
+/* report */
+.wk{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.wk .lblmid{flex:1;text-align:center;font-weight:600}
+.wk button{border:1px solid var(--line);background:none;border-radius:10px;width:40px;height:40px;font-size:18px}
+.wk button:disabled{opacity:.35;cursor:default}
+.insight{margin:14px 0 0;max-width:52ch}
+.chart{overflow-x:auto;margin-top:22px}
+.chart svg{display:block;width:100%;min-width:300px;height:auto}
+.ax{font:11px var(--font-body);fill:var(--muted);text-anchor:middle}
+.ax.today{fill:var(--ink);font-weight:700}
+.bv{font:500 10px var(--font-mono);fill:var(--ink);text-anchor:middle}
+.base{stroke:var(--line);stroke-width:1}
+.list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:16px}
+.rr-top{display:flex;justify-content:space-between;gap:12px;font-weight:600}
+.rr-name{display:flex;align-items:center;gap:8px;min-width:0;overflow-wrap:anywhere}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.rr-amt{font:500 14px var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:8px;border-radius:99px;background:var(--track);margin-top:7px;overflow:hidden}
+.bar b{display:block;height:100%;border-radius:99px}
+.rr-sub{font-size:13px;color:var(--muted);margin-top:5px}
+.sect{margin-top:30px}
+.top5{list-style:none;margin:6px 0 0;padding:0}
+.top5 li{display:flex;gap:10px;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid var(--line)}
+@media (prefers-reduced-motion: reduce){.prg{transition:none}}
+</style>
+
+<div class="app">
+  <header>
+    <h1>Taka Rings</h1>
+    <div class="stats" id="stats"></div>
+  </header>
+  <div class="tabs" role="group" aria-label="View">
+    <button type="button" data-act="view" data-v="rings" id="tab-rings">Rings</button>
+    <button type="button" data-act="view" data-v="report" id="tab-report">Weekly report</button>
+  </div>
+  <main id="main"></main>
+  <p class="status" id="status"></p>
+</div>
+<div id="sheetRoot"></div>
+
+<script>
+(function(){
+  var $=function(s,r){return (r||document).querySelector(s)};
+  var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var nf=new Intl.NumberFormat('en-IN',{maximumFractionDigits:2});
+  var fmt=function(n){return nf.format(Math.round(n*100)/100)};
+  var compact=function(n){
+    if(n>=100000)return (n/100000).toFixed(1).replace(/\.0$/,'')+'L';
+    if(n>=1000)return (n/1000).toFixed(1).replace(/\.0$/,'')+'k';
+    return String(Math.round(n));
+  };
+  var dfmt=function(t){
+    var d=new Date(t);
+    return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+', '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).toLowerCase();
+  };
+  var newId=function(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)};
+  var parseAmt=function(v){var n=parseFloat(String(v).replace(/[,\s]/g,''));return isFinite(n)?Math.round(n*100)/100:NaN};
+  var DAYS=['Sat','Sun','Mon','Tue','Wed','Thu','Fri'];
+  var SUGGEST=['Transport','Books','Clothes','Medicine','Food','Fun'];
+  var LS_KEY='takaRings.v1';
+
+  var S={rings:[],loaded:false,mode:'local',col:null,view:'rings',sel:null,week:0,entryMode:'s',armed:null,newColor:0,err:'',sheetKey:null};
+
+  /* ---------- storage ---------- */
+  function norm(id,d){
+    return {
+      id:id, name:String(d.name||'Untitled'), color:(d.color|0)%8, createdAt:d.createdAt||0, cycleStart:d.cycleStart||0,
+      entries:Array.isArray(d.entries)?d.entries.map(function(e){return {id:e.id,t:e.t,k:e.k==='a'?'a':'s',amt:+e.amt||0,note:e.note||''}}):[]
+    };
+  }
+  function plain(r){
+    return {name:r.name,color:r.color,createdAt:r.createdAt,cycleStart:r.cycleStart,
+      entries:r.entries.map(function(e){return {id:e.id,t:e.t,k:e.k,amt:e.amt,note:e.note}})};
+  }
+  function lsRead(){try{var a=JSON.parse(localStorage.getItem(LS_KEY)||'[]');return a.map(function(r){return norm(r.id,r)})}catch(e){return []}}
+  function lsWrite(){try{localStorage.setItem(LS_KEY,JSON.stringify(S.rings))}catch(e){}}
+  function setErr(m){S.err=m;paintStatus()}
+  var queues={};
+  function chain(id,fn){
+    queues[id]=(queues[id]||Promise.resolve()).then(fn).then(function(){if(S.err)setErr('')}).catch(function(e){
+      setErr(e&&e.code==='quota_exceeded'?'Storage is full, so the last change was not saved.':'The last change could not be saved. Check your connection and try again.');
+    });
+  }
+  function persist(r){
+    if(S.mode==='local'){lsWrite();return}
+    chain(r.id,function(){
+      var cur=S.rings.find(function(x){return x.id===r.id});
+      if(!cur)return null;
+      return S.col.doc(r.id).set(plain(cur));
+    });
+  }
+  function removeRing(id){
+    S.rings=S.rings.filter(function(r){return r.id!==id});
+    if(S.mode==='local'){lsWrite();return}
+    chain(id,function(){return S.col.doc(id).delete()});
+  }
+
+  /* ---------- maths ---------- */
+  function info(r){
+    var balance=0,base=0,added=0;
+    r.entries.forEach(function(e){
+      var v=e.k==='a'?e.amt:-e.amt;
+      balance+=v;
+      if(e.t<r.cycleStart)base+=v;else if(e.k==='a')added+=e.amt;
+    });
+    var total=Math.max(base,0)+added;
+    var pct=total>0?Math.max(0,Math.min(1,balance/total)):0;
+    return {balance:balance,total:total,pct:pct};
+  }
+  function weekStart(off){
+    var n=new Date();var since=(n.getDay()+1)%7;
+    return new Date(n.getFullYear(),n.getMonth(),n.getDate()-since+off*7);
+  }
+  function weekRange(off){
+    var s=weekStart(off);
+    return {start:s.getTime(),end:new Date(s.getFullYear(),s.getMonth(),s.getDate()+7).getTime(),s:s};
+  }
+  function spentInWeek(off){
+    var w=weekRange(off),t=0;
+    S.rings.forEach(function(r){r.entries.forEach(function(e){if(e.k==='s'&&e.t>=w.start&&e.t<w.end)t+=e.amt})});
+    return t;
+  }
+
+  /* ---------- pieces ---------- */
+  function ringSVG(r){
+    var i=info(r),C=2*Math.PI*48,off=C*(1-i.pct);
+    var bal=fmt(i.balance);
+    var fs=bal.length>9?12:bal.length>7?15:bal.length>5?18:22;
+    var sub=i.balance<0?'over budget':(i.total>0?Math.round(i.pct*100)+'% left':'no money yet');
+    return '<svg viewBox="0 0 120 120" role="img" class="'+(i.balance<0?'neg':'')+'" aria-label="'+esc(r.name)+': '+bal+' taka, '+sub+'">'
+      +'<circle class="trk" cx="60" cy="60" r="48"/>'
+      +'<circle class="prg" cx="60" cy="60" r="48" transform="rotate(-90 60 60)" style="stroke:var(--c'+r.color+');stroke-dasharray:'+C.toFixed(2)+';stroke-dashoffset:'+off.toFixed(2)+(i.pct<=0.004?';opacity:0':'')+'"/>'
+      +'<text class="bn" x="60" y="61" text-anchor="middle" style="font-size:'+fs+'px">'+bal+'</text>'
+      +'<text class="bs" x="60" y="78" text-anchor="middle">'+sub+'</text></svg>';
+  }
+  function tagFor(r){
+    var i=info(r);
+    if(i.balance<0)return '<span class="tag bad">Over by '+fmt(-i.balance)+' tk</span>';
+    if(i.total>0&&i.pct<0.2)return '<span class="tag warn">Running low</span>';
+    return '';
+  }
+
+  /* ---------- main view ---------- */
+  function renderStats(){
+    var el=$('#stats');
+    if(!S.loaded){el.innerHTML='';return}
+    var left=S.rings.reduce(function(a,r){return a+info(r).balance},0);
+    el.innerHTML='<div class="stat"><div class="lbl">Left across all rings</div><div class="val'+(left<0?' neg':'')+'">'+fmt(left)+'<small>tk</small></div></div>'
+      +'<div class="stat"><div class="lbl">Spent this week</div><div class="val">'+fmt(spentInWeek(0))+'<small>tk</small></div></div>';
+  }
+  function renderRings(){
+    if(S.rings.length===0){
+      return '<div class="empty"><h2>Make your first ring</h2>'
+        +'<p class="muted">One ring for each thing you spend on. Put money in, log what you spend, and the ring shows how much of it is left.</p>'
+        +'<div class="chips">'+SUGGEST.map(function(n){return '<button type="button" class="chip" data-act="quick" data-name="'+esc(n)+'">'+esc(n)+'</button>'}).join('')
+        +'<button type="button" class="chip" data-act="new">Something else</button></div></div>';
+    }
+    var h='<div class="grid">';
+    S.rings.forEach(function(r){
+      h+='<button type="button" class="ringbtn" data-act="open" data-id="'+esc(r.id)+'">'+ringSVG(r)
+        +'<span class="rname">'+esc(r.name)+'</span>'+tagFor(r)+'</button>';
+    });
+    if(S.rings.length<24){
+      h+='<button type="button" class="ringbtn" data-act="new" aria-label="New ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="plus-ring" cx="60" cy="60" r="48"/><path class="plus-sign" d="M60 44v32M44 60h32"/></svg><span class="rname muted">New ring</span></button>';
+    }
+    return h+'</div>';
+  }
+  function renderReport(){
+    var w=weekRange(S.week);
+    var days=[0,0,0,0,0,0,0],spent=0,added=0,per=[],spends=[];
+    S.rings.forEach(function(r){
+      var s=0,a=0;
+      r.entries.forEach(function(e){
+        if(e.t>=w.start&&e.t<w.end){
+          if(e.k==='s'){s+=e.amt;days[Math.min(6,Math.floor((e.t-w.start)/864e5))]+=e.amt;spends.push({r:r,e:e})}
+          else a+=e.amt;
+        }
+      });
+      spent+=s;added+=a;per.push({r:r,s:s,a:a,left:info(r).balance});
+    });
+    var last=new Date(w.s.getFullYear(),w.s.getMonth(),w.s.getDate()+6);
+    var d=function(x){return x.toLocaleDateString('en-GB',{day:'numeric',month:'short'})};
+    var label=S.week===0?'This week':(S.week===-1?'Last week':d(w.s)+' to '+d(last));
+    var left=S.rings.reduce(function(a,r){return a+info(r).balance},0);
+    var h='<div class="wk"><button type="button" data-act="wk" data-d="-1" aria-label="Previous week">&#8249;</button>'
+      +'<div class="lblmid">'+label+'<div class="muted" style="font-weight:400;font-size:13px">'+d(w.s)+' to '+d(last)+'</div></div>'
+      +'<button type="button" data-act="wk" data-d="1" aria-label="Next week"'+(S.week>=0?' disabled':'')+'>&#8250;</button></div>';
+    h+='<div class="stats"><div class="stat"><div class="lbl">Spent</div><div class="val">'+fmt(spent)+'<small>tk</small></div></div>'
+      +'<div class="stat"><div class="lbl">Added</div><div class="val">'+fmt(added)+'<small>tk</small></div></div>'
+      +'<div class="stat"><div class="lbl">Left now</div><div class="val'+(left<0?' neg':'')+'">'+fmt(left)+'<small>tk</small></div></div></div>';
+    if(spent===0&&added===0){
+      return h+'<p class="muted" style="margin-top:22px">Nothing logged in this week yet.</p>';
+    }
+    per.sort(function(a,b){return b.s-a.s});
+    if(spent>0){
+      var top=per[0];
+      h+='<p class="insight">Most of the week went to <b>'+esc(top.r.name)+'</b> ('+Math.round(top.s/spent*100)+'% of what you spent).</p>';
+      var max=Math.max.apply(null,days),today=S.week===0?(new Date().getDay()+1)%7:-1;
+      var svg='<svg viewBox="0 0 350 160" role="img" aria-label="Spending by day this week">';
+      svg+='<line class="base" x1="8" x2="342" y1="124" y2="124"/>';
+      days.forEach(function(v,i){
+        var x=14+i*48,bh=max>0?Math.round(v/max*88):0;
+        if(v>0){
+          svg+='<rect x="'+x+'" y="'+(124-Math.max(bh,3))+'" width="34" height="'+Math.max(bh,3)+'" rx="5" style="fill:var(--accent)"/>';
+          svg+='<text class="bv" x="'+(x+17)+'" y="'+(124-Math.max(bh,3)-6)+'">'+compact(v)+'</text>';
+        }
+        svg+='<text class="ax'+(i===today?' today':'')+'" x="'+(x+17)+'" y="144">'+DAYS[i]+'</text>';
+      });
+      svg+='</svg>';
+      h+='<div class="chart">'+svg+'</div>';
+    }
+    h+='<section class="sect"><h3>By ring</h3><ul class="list">';
+    var maxS=Math.max.apply(null,per.map(function(p){return p.s}).concat([1]));
+    var idle=0;
+    per.forEach(function(p){
+      if(p.s===0&&p.a===0){idle++;return}
+      h+='<li><div class="rr-top"><span class="rr-name"><i class="dot" style="background:var(--c'+p.r.color+')"></i>'+esc(p.r.name)+'</span><span class="rr-amt">'+fmt(p.s)+' tk</span></div>'
+        +'<div class="bar"><b style="width:'+Math.round(p.s/maxS*100)+'%;background:var(--c'+p.r.color+')"></b></div>'
+        +'<div class="rr-sub">Added '+fmt(p.a)+' tk &middot; left now '+fmt(p.left)+' tk</div></li>';
+    });
+    h+='</ul>'+(idle?'<p class="muted" style="margin-top:12px;font-size:13px">'+idle+(idle===1?' ring':' rings')+' had no activity.</p>':'')+'</section>';
+    spends.sort(function(a,b){return b.e.amt-a.e.amt});
+    if(spends.length){
+      h+='<section class="sect"><h3>Biggest spends</h3><ul class="top5">';
+      spends.slice(0,5).forEach(function(x){
+        h+='<li><span style="min-width:0;overflow-wrap:anywhere">'+esc(x.e.note||x.r.name)+'<span class="e-when">'+esc(x.r.name)+' &middot; '+dfmt(x.e.t)+'</span></span><span class="e-amt">'+fmt(x.e.amt)+' tk</span></li>';
+      });
+      h+='</ul></section>';
+    }
+    return h;
+  }
+  function renderMain(){
+    $('#tab-rings').setAttribute('aria-pressed',S.view==='rings');
+    $('#tab-report').setAttribute('aria-pressed',S.view==='report');
+    renderStats();
+    var m=$('#main');
+    if(!S.loaded){m.innerHTML='<p class="muted">Loading your rings...</p>';return}
+    m.innerHTML=S.view==='rings'?renderRings():renderReport();
+  }
+  function paintStatus(){
+    var el=$('#status');
+    if(S.err){el.className='status err';el.textContent=S.err;return}
+    el.className='status';
+    if(!S.loaded){el.textContent='';return}
+    el.textContent=S.mode==='cloud'?'Saved to your Claude account. Only you can see these rings.':'Saved in this browser only. Open the page signed in to keep it in your account.';
+  }
+
+  /* ---------- sheet ---------- */
+  function cur(){return S.rings.find(function(r){return r.id===S.sel})}
+  function sheetHTML(){
+    if(S.sel==='new'){
+      var sw='';
+      for(var i=0;i<8;i++)sw+='<button type="button" class="sw" data-act="color" data-c="'+i+'" aria-label="Color '+(i+1)+'" aria-pressed="'+(S.newColor===i)+'" style="background:var(--c'+i+')"></button>';
+      return '<div class="scrim" data-act="close"></div><section class="sheet" role="dialog" aria-modal="true" aria-label="New ring">'
+        +'<div class="sh-head"><h2>New ring</h2><button type="button" class="x" data-act="close" aria-label="Close">&times;</button></div>'
+        +'<form data-f="create" autocomplete="off">'
+        +'<label for="nname">What is this money for?</label><input type="text" id="nname" maxlength="30" placeholder="Books">'
+        +'<label for="nstart">Money to put in now (tk), optional</label><input type="text" id="nstart" class="amt" inputmode="decimal" placeholder="0">'
+        +'<label>Color</label><div class="swatches">'+sw+'</div>'
+        +'<p class="msg" id="msg" role="status"></p>'
+        +'<button class="btn full">Create ring</button></form></section>';
+    }
+    var r=cur();
+    if(!r)return '';
+    var i=info(r),spentCycle=Math.max(0,i.total-i.balance);
+    var chips=S.entryMode==='s'?'<div class="chips" style="margin-top:10px">'+[10,20,50,100,200,500].map(function(n){return '<button type="button" class="chip" data-act="chip" data-amt="'+n+'">'+n+'</button>'}).join('')+'</div>':'';
+    var hist=r.entries.slice().sort(function(a,b){return b.t-a.t}).slice(0,40).map(function(e){
+      var armed=S.armed==='e:'+e.id;
+      return '<li><div class="e-main"><span class="e-note">'+esc(e.note||(e.k==='a'?'Money added':'Spent'))+'</span><span class="e-when">'+dfmt(e.t)+'</span></div>'
+        +'<span class="e-amt '+e.k+'">'+(e.k==='a'?'+':'-')+fmt(e.amt)+'</span>'
+        +'<button type="button" class="e-del'+(armed?' armed':'')+'" data-act="delEntry" data-eid="'+esc(e.id)+'" aria-label="Remove this entry">'+(armed?'Remove?':'&times;')+'</button></li>';
+    }).join('');
+    var armedR=S.armed==='r:'+r.id;
+    return '<div class="scrim" data-act="close"></div><section class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(r.name)+'">'
+      +'<div class="sh-head"><h2>'+esc(r.name)+'</h2><button type="button" class="x" data-act="close" aria-label="Close">&times;</button></div>'
+      +'<div class="bigring">'+ringSVG(r)+'<div class="meta">'+(i.total>0?fmt(i.total)+' tk in this cycle &middot; '+fmt(spentCycle)+' spent':'Add money to start')+'</div></div>'
+      +'<div class="seg" role="group" aria-label="Entry type"><button type="button" data-act="mode" data-m="s" aria-pressed="'+(S.entryMode==='s')+'">Spent</button><button type="button" data-act="mode" data-m="a" aria-pressed="'+(S.entryMode==='a')+'">Add money</button></div>'
+      +'<form data-f="entry" autocomplete="off">'
+      +'<label for="amt" style="margin-top:0">Amount (tk)</label>'
+      +'<div class="amtrow"><input type="text" id="amt" class="amt" inputmode="decimal" placeholder="0"><button class="btn">'+(S.entryMode==='s'?'Log spending':'Add money')+'</button></div>'
+      +chips
+      +'<label for="note">Note, optional</label><input type="text" id="note" maxlength="60" placeholder="'+(S.entryMode==='s'?'Bus fare':'Pocket money')+'">'
+      +'<p class="msg" id="msg" role="status"></p></form>'
+      +'<div class="sect" style="margin-top:18px"><h3>History</h3>'+(hist?'<ul class="hist">'+hist+'</ul>':'<p class="muted">Nothing logged yet.</p>')+'</div>'
+      +'<div class="settings"><h3>Ring settings</h3>'
+      +'<form data-f="rename" autocomplete="off"><input type="text" id="rn" maxlength="30" value="'+esc(r.name)+'" aria-label="Ring name"><button class="btn ghost">Rename</button></form>'
+      +'<button type="button" class="btn ghost" data-act="cycle">Start a new cycle (reset the % to what is left now)</button>'
+      +'<button type="button" class="btn danger'+(armedR?' armed':'')+'" data-act="delRing">'+(armedR?'Tap again to delete this ring':'Delete ring')+'</button></div>'
+      +'</section>';
+  }
+  function renderSheet(){
+    var root=$('#sheetRoot');
+    var key=S.sel?(S.sel+'|'+S.entryMode):null;
+    var a=document.activeElement,fid=a&&a.id&&root.contains(a)?a.id:null,ss=null,se=null;
+    if(fid&&a.selectionStart!=null){ss=a.selectionStart;se=a.selectionEnd}
+    var vals={};
+    if(S.sheetKey&&S.sheetKey===S.sel){root.querySelectorAll('input').forEach(function(x){if(x.id&&x.value!=='')vals[x.id]=x.value})}
+    root.innerHTML=S.sel?sheetHTML():'';
+    document.body.style.overflow=S.sel?'hidden':'';
+    if(S.sheetKey===S.sel){
+      Object.keys(vals).forEach(function(id){var el=document.getElementById(id);if(el&&id!=='rn')el.value=vals[id]});
+      if(fid){var el2=document.getElementById(fid);if(el2){el2.focus();try{if(ss!=null)el2.setSelectionRange(ss,se)}catch(e){}}}
+    }
+    S.sheetKey=S.sel;
+  }
+  function render(){
+    if(S.sel&&S.sel!=='new'&&!cur()){S.sel=null}
+    renderMain();renderSheet();paintStatus();
+  }
+  function msg(t){var m=$('#msg');if(m)m.textContent=t}
+  function openSheet(id){S.sel=id;S.armed=null;S.entryMode='s';render();}
+  function disarmLater(key){setTimeout(function(){if(S.armed===key){S.armed=null;render()}},3500)}
+
+  /* ---------- actions ---------- */
+  function createRing(name,start,color){
+    var now=Date.now();
+    var r={id:newId('r'),name:name,color:color,createdAt:now,cycleStart:now,entries:[]};
+    if(start>0)r.entries.push({id:newId('e'),t:now,k:'a',amt:start,note:'Starting balance'});
+    S.rings.push(r);
+    persist(r);
+    return r;
+  }
+  document.addEventListener('click',function(ev){
+    var t=ev.target.closest('[data-act]');
+    if(!t)return;
+    var a=t.dataset.act,r;
+    if(a==='view'){S.view=t.dataset.v;S.armed=null;render()}
+    else if(a==='open'){openSheet(t.dataset.id)}
+    else if(a==='new'){S.sel='new';S.armed=null;S.newColor=S.rings.length%8;render();var n=$('#nname');if(n)n.focus()}
+    else if(a==='quick'){var q=createRing(t.dataset.name,0,S.rings.length%8);openSheet(q.id);var am=$('#amt');if(am)am.focus()}
+    else if(a==='close'){S.sel=null;S.armed=null;render()}
+    else if(a==='mode'){S.entryMode=t.dataset.m;render();var am2=$('#amt');if(am2)am2.focus()}
+    else if(a==='chip'){var el=$('#amt');if(el){el.value=t.dataset.amt;el.focus()}}
+    else if(a==='color'){S.newColor=+t.dataset.c;render()}
+    else if(a==='wk'){S.week=Math.min(0,S.week+(+t.dataset.d));render()}
+    else if(a==='cycle'){r=cur();if(r){r.cycleStart=Date.now();persist(r);render()}}
+    else if(a==='delEntry'){
+      r=cur();if(!r)return;
+      var key='e:'+t.dataset.eid;
+      if(S.armed===key){r.entries=r.entries.filter(function(e){return e.id!==t.dataset.eid});S.armed=null;persist(r);render()}
+      else{S.armed=key;render();disarmLater(key)}
+    }
+    else if(a==='delRing'){
+      r=cur();if(!r)return;
+      var k2='r:'+r.id;
+      if(S.armed===k2){removeRing(r.id);S.sel=null;S.armed=null;render()}
+      else{S.armed=k2;render();disarmLater(k2)}
+    }
+  });
+  document.addEventListener('submit',function(ev){
+    var f=ev.target.closest('form[data-f]');
+    if(!f)return;
+    ev.preventDefault();
+    var kind=f.dataset.f,r;
+    if(kind==='create'){
+      var name=$('#nname').value.trim();
+      if(!name){msg('Give the ring a name.');return}
+      var raw=$('#nstart').value.trim();
+      var start=raw===''?0:parseAmt(raw);
+      if(!(start>=0)||start>1e9){msg('Enter the starting money as a number, or leave it empty.');return}
+      var nr=createRing(name,start,S.newColor);
+      openSheet(nr.id);
+    }
+    else if(kind==='entry'){
+      r=cur();if(!r)return;
+      var amt=parseAmt($('#amt').value);
+      if(!(amt>0)||amt>1e9){msg('Enter an amount above 0.');return}
+      r.entries.push({id:newId('e'),t:Date.now(),k:S.entryMode,amt:amt,note:$('#note').value.trim()});
+      persist(r);
+      $('#amt').value='';$('#note').value='';
+      render();
+      var am=$('#amt');if(am)am.focus();
+    }
+    else if(kind==='rename'){
+      r=cur();if(!r)return;
+      var nn=$('#rn').value.trim();
+      if(!nn)return;
+      r.name=nn;persist(r);render();
+    }
+  });
+  document.addEventListener('keydown',function(ev){
+    if(ev.key==='Escape'&&S.sel){S.sel=null;S.armed=null;render()}
+  });
+
+  /* ---------- startup ---------- */
+  function withTimeout(p){return Promise.race([p,new Promise(function(res){setTimeout(function(){res(null)},4000)})])}
+  async function init(){
+    render();
+    var db=null,user=null;
+    try{
+      if(window.claude&&window.claude.use){
+        var res=await Promise.all([withTimeout(window.claude.use('db')),withTimeout(window.claude.use('user'))]);
+        db=res[0];user=res[1];
+      }
+    }catch(e){}
+    var uid=null;
+    try{if(user)uid=await user.id()}catch(e){}
+    var ok=false;
+    if(db&&uid){
+      try{
+        S.col=db.collection('data/users/'+uid);
+        S.mode='cloud';
+        S.col.onSnapshot(function(snap){
+          var list=snap.docs.map(function(d){return norm(d.id,d.data()||{})});
+          if(!S.loaded&&snap.metadata.fromCache&&list.length===0)return;
+          list.sort(function(a,b){return a.createdAt-b.createdAt});
+          S.rings=list;S.loaded=true;render();
+        },function(){
+          S.loaded=true;setErr('Live sync stopped. Reload the page to reconnect.');render();
+        });
+        setTimeout(function(){if(!S.loaded){S.loaded=true;render()}},3000);
+        ok=true;
+      }catch(e){ok=false}
+    }
+    if(!ok){
+      S.mode='local';S.rings=lsRead();S.loaded=true;render();
+    }
+  }
+  init();
+})();
+</script>
+
+</body></html>
